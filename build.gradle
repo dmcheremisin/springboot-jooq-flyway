@@ -1,0 +1,91 @@
+buildscript {
+    dependencies {
+        classpath 'org.flywaydb:flyway-database-postgresql:10.1.0'
+        classpath 'org.postgresql:postgresql:42.7.0'
+        // classpath 'org.postgresql:postgresql:42.7.5' causes generation error
+    }
+}
+
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.0'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.flywaydb.flyway' version '10.15.2'
+    id "org.jooq.jooq-codegen-gradle" version "3.19.10"
+}
+
+group = 'org.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-jooq'
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-database-postgresql'
+    runtimeOnly 'org.postgresql:postgresql'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.named("jooqCodegen") {
+    dependsOn("flywayMigrate")
+}
+
+flyway {
+    driver = 'org.postgresql.Driver'
+    url = "jdbc:postgresql://localhost:5432/postgres"
+    user = 'postgres'
+    password = 'mysecretpassword'
+    schemas = ['public']
+}
+
+jooq {
+    configuration {
+        jdbc {
+            driver = 'org.postgresql.Driver'
+            url = "jdbc:postgresql://localhost:5432/postgres"
+            user = 'postgres'
+            password = 'mysecretpassword'
+        }
+        generator {
+            database {
+                name = 'org.jooq.meta.postgres.PostgresDatabase'
+                inputSchema = 'public'
+                excludes = """
+					flyway_schema_history
+					"""
+            }
+            target {
+                packageName = 'org.example.springbootjooq.generated'
+                directory = 'src/main/java'
+            }
+        }
+    }
+}
+
