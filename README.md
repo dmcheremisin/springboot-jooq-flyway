@@ -26,3 +26,6 @@ The way its done is the following:
 3. You will see all the generated code under src/main/java/org/example/springbootjooq/generated
    It is up to you  where to store generated files(change at build.gradle). I chose this location instead of /build for visibility.
 4. Run project as usual from IDE or jar
+
+
+Inspired by: https://github.com/aabarmin/ab-examples/tree/main/jooq
